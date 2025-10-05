@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import FeaturedBanner from '../components/FeaturedBanner.vue'
 import ContentShelf from '../components/ContentShelf.vue'
 import { filmCollections, filmGenres, filmSpotlight } from '../data/media.js'
+import AuthGate from '../components/AuthGate.vue'
 
 const selectedGenre = ref(filmGenres[0])
 
@@ -28,44 +29,46 @@ const handleGenreSelect = (genre) => {
 </script>
 
 <template>
-  <div class="films-wrapper">
-    <FeaturedBanner :media="filmSpotlight" />
+  <AuthGate>
+    <div class="films-wrapper">
+      <FeaturedBanner :media="filmSpotlight" />
 
-    <section class="films-toolbar" aria-label="Filter film">
-      <div class="films-heading">
-        <h1 class="films-title">Jelajahi Film</h1>
-        <p class="films-description">
-          Temukan berbagai pilihan film eksklusif, rilisan terbaru, hingga dokumenter inspiratif hanya di Pixa Digital.
-        </p>
+      <section class="films-toolbar" aria-label="Filter film">
+        <div class="films-heading">
+          <h1 class="films-title">Jelajahi Film</h1>
+          <p class="films-description">
+            Temukan berbagai pilihan film eksklusif, rilisan terbaru, hingga dokumenter inspiratif hanya di Pixa Digital.
+          </p>
+        </div>
+
+        <div class="genre-filters" role="list">
+          <button
+            v-for="genre in filmGenres"
+            :key="genre"
+            type="button"
+            class="genre-button"
+            :class="{ 'genre-button--active': genre === selectedGenre }"
+            :aria-pressed="genre === selectedGenre"
+            @click="handleGenreSelect(genre)"
+          >
+            {{ genre }}
+          </button>
+        </div>
+      </section>
+
+      <div v-if="filteredCollections.length > 0" class="films-shelves">
+        <ContentShelf
+          v-for="collection in filteredCollections"
+          :key="collection.id"
+          :heading="collection.heading"
+          :section-id="collection.id"
+          :items="collection.items"
+          :show-cta="false"
+        />
       </div>
-
-      <div class="genre-filters" role="list">
-        <button
-          v-for="genre in filmGenres"
-          :key="genre"
-          type="button"
-          class="genre-button"
-          :class="{ 'genre-button--active': genre === selectedGenre }"
-          :aria-pressed="genre === selectedGenre"
-          @click="handleGenreSelect(genre)"
-        >
-          {{ genre }}
-        </button>
-      </div>
-    </section>
-
-    <div v-if="filteredCollections.length > 0" class="films-shelves">
-      <ContentShelf
-        v-for="collection in filteredCollections"
-        :key="collection.id"
-        :heading="collection.heading"
-        :section-id="collection.id"
-        :items="collection.items"
-        :show-cta="false"
-      />
+      <p v-else class="films-empty">Tidak ada film yang cocok dengan filter saat ini.</p>
     </div>
-    <p v-else class="films-empty">Tidak ada film yang cocok dengan filter saat ini.</p>
-  </div>
+  </AuthGate>
 </template>
 
 <style scoped>

@@ -1,6 +1,7 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuth } from '../composables/useAuth.js'
 
 const navLinks = [
   { id: 'films', label: 'Film', to: { name: 'films' } },
@@ -9,7 +10,12 @@ const navLinks = [
 ]
 
 const route = useRoute()
+const router = useRouter()
 const isSolidHeader = ref(false)
+
+const { userInitials, isAuthenticated, logout } = useAuth()
+
+const isHome = computed(() => route.name === 'home')
 
 const handleScroll = () => {
   isSolidHeader.value = window.scrollY > 40
@@ -39,6 +45,13 @@ const isLinkActive = (link) => {
   return false
 }
 
+function handleLogout() {
+  logout()
+  if (route.meta?.requiresAuth) {
+    router.push({ name: 'home' })
+  }
+}
+
 onMounted(() => {
   handleScroll()
   window.addEventListener('scroll', handleScroll, { passive: true })
@@ -59,7 +72,7 @@ onBeforeUnmount(() => {
         <span class="brand-name">Pixa Digital</span>
       </RouterLink>
 
-      <nav class="primary-nav" aria-label="Navigasi utama">
+      <nav v-if="!isHome" class="primary-nav" aria-label="Navigasi utama">
         <ul class="nav-list">
           <li v-for="link in navLinks" :key="link.id" class="nav-item">
             <RouterLink
@@ -92,9 +105,16 @@ onBeforeUnmount(() => {
           </button>
         </form>
 
-        <div class="profile-pill" aria-label="Profil pengguna Anindya">
-          <span class="profile-initials">AN</span>
-        </div>
+        <template v-if="isAuthenticated">
+          <div class="profile-pill" aria-label="Profil pengguna">
+            <span class="profile-initials">{{ userInitials }}</span>
+          </div>
+          <button type="button" class="logout-button" @click="handleLogout">Keluar</button>
+        </template>
+        <template v-else>
+          <RouterLink class="auth-link" :to="{ name: 'login' }">Masuk</RouterLink>
+          <RouterLink class="auth-button" :to="{ name: 'register' }">Daftar</RouterLink>
+        </template>
       </div>
     </div>
   </header>
@@ -256,6 +276,25 @@ onBeforeUnmount(() => {
 
 .profile-initials {
   font-size: 0.85rem;
+}
+
+.auth-link {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.auth-button {
+  padding: 0.55rem 1.2rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+  color: var(--text-primary);
+  border-radius: 999px;
+}
+
+.logout-button {
+  padding: 0.4rem 0.9rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border-radius: 999px;
 }
 
 @media (max-width: 1024px) {

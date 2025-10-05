@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import FeaturedBanner from '../components/FeaturedBanner.vue'
 import ContentShelf from '../components/ContentShelf.vue'
 import { homeShelves } from '../data/media.js'
+import AuthGate from '../components/AuthGate.vue'
 
 const sportsShelf = homeShelves.find((s) => s.id === 'sports')
 
@@ -28,40 +29,42 @@ const handleGenreSelect = (g) => {
 </script>
 
 <template>
-  <div class="sports-wrapper">
-    <FeaturedBanner v-if="false" :media="{}" />
+  <AuthGate>
+    <div class="sports-wrapper">
+      <FeaturedBanner v-if="false" :media="{}" />
 
-    <section class="films-toolbar" aria-label="Filter olahraga">
-      <div class="films-heading">
-        <h1 class="films-title">Olahraga</h1>
-        <p class="films-description">Tonton pertandingan langsung, tayangan ulang, dan sorotan terbaik olahraga dari seluruh Nusantara.</p>
+      <section class="films-toolbar" aria-label="Filter olahraga">
+        <div class="films-heading">
+          <h1 class="films-title">Olahraga</h1>
+          <p class="films-description">Tonton pertandingan langsung, tayangan ulang, dan sorotan terbaik olahraga dari seluruh Nusantara.</p>
+        </div>
+
+        <div class="genre-filters" role="list">
+          <button
+            v-for="genre in genres"
+            :key="genre"
+            type="button"
+            class="genre-button"
+            :class="{ 'genre-button--active': genre === selectedGenre }"
+            :aria-pressed="genre === selectedGenre"
+            @click="handleGenreSelect(genre)"
+          >
+            {{ genre }}
+          </button>
+        </div>
+      </section>
+
+      <div v-if="filteredItems.length > 0" class="films-shelves">
+        <ContentShelf
+          :heading="sportsShelf.heading"
+          :section-id="sportsShelf.id"
+          :items="filteredItems"
+          :show-cta="false"
+        />
       </div>
-
-      <div class="genre-filters" role="list">
-        <button
-          v-for="genre in genres"
-          :key="genre"
-          type="button"
-          class="genre-button"
-          :class="{ 'genre-button--active': genre === selectedGenre }"
-          :aria-pressed="genre === selectedGenre"
-          @click="handleGenreSelect(genre)"
-        >
-          {{ genre }}
-        </button>
-      </div>
-    </section>
-
-    <div v-if="filteredItems.length > 0" class="films-shelves">
-      <ContentShelf
-        :heading="sportsShelf.heading"
-        :section-id="sportsShelf.id"
-        :items="filteredItems"
-        :show-cta="false"
-      />
+      <p v-else class="films-empty">Tidak ada konten olahraga yang cocok dengan filter saat ini.</p>
     </div>
-    <p v-else class="films-empty">Tidak ada konten olahraga yang cocok dengan filter saat ini.</p>
-  </div>
+  </AuthGate>
 </template>
 
 <style scoped>
